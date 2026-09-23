@@ -6,7 +6,9 @@ import {
   Bot,
   Check,
   ChevronRight,
+  Clock3,
   Download,
+  ExternalLink,
   Gamepad2,
   Library,
   ListFilter,
@@ -237,6 +239,33 @@ function fallbackAdvice(game: Game, minutes: string) {
   return `${minutes} мин: продолжи ближайшую сюжетную цель, затем обнови прогресс и одну заметку.`;
 }
 
+function pcGamingWikiUrl(game: Game) {
+  if (game.id === "expedition-33") {
+    return "https://www.pcgamingwiki.com/wiki/Clair_Obscur%3A_Expedition_33";
+  }
+  if (game.id === "indiana-jones") {
+    return "https://www.pcgamingwiki.com/wiki/Indiana_Jones_and_the_Great_Circle";
+  }
+  return `https://www.pcgamingwiki.com/w/index.php?search=${encodeURIComponent(game.title)}`;
+}
+
+function buildSessionPlan(game: Game, minutes: number) {
+  const task = game.tasks?.[0];
+  if (game.status === "Пройдено") {
+    if (minutes <= 20) return "Коротко вернуться в знакомый эпизод или проверить настройки — без нового большого прохождения.";
+    if (minutes <= 60) return "Повторить один любимый эпизод и спокойно остановиться на следующем сохранении.";
+    return "Для длинной сессии лучше начать дополнительный контент или выбрать непройденную игру.";
+  }
+  if (game.status === "Хочу пройти" || game.status === "Библиотека") {
+    if (minutes <= 20) return "Установить, проверить управление и графику, затем пройти самое начало.";
+    if (minutes <= 60) return "Запустить игру, настроить её и пройти первый небольшой этап.";
+    return "Хватит на настройку и уверенный старт: начало → исследование → первое удобное сохранение.";
+  }
+  if (minutes <= 20) return task ? `Сделать одну задачу: «${task}», затем сохранить прогресс.` : "Выполнить одну короткую цель и остановиться на сохранении.";
+  if (minutes <= 60) return task ? `Главная цель: «${task}». Потом 10 минут на исследование или экипировку.` : "Продолжить одну сюжетную цель, немного исследовать мир и сохранить прогресс.";
+  return task ? `Начать с «${task}», затем пройти сюжетный отрезок и проверить экипировку. Сделать паузу через час.` : "Длинная сессия: сюжет → исследование → улучшения. Сделать короткую паузу через час.";
+}
+
 declare global {
   interface Document {
     modelContext?: {
@@ -262,6 +291,8 @@ export default function Home() {
   const [advice, setAdvice] = useState("");
   const [adviceSource, setAdviceSource] = useState<"openai" | "local" | "">("");
   const [adviceLoading, setAdviceLoading] = useState(false);
+  const [sessionMinutes, setSessionMinutes] = useState(60);
+  const [sessionGameId, setSessionGameId] = useState("expedition-33");
   const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -278,7 +309,8 @@ export default function Home() {
     localStorage.setItem("myGamesHubData", JSON.stringify(next));
   };
 
-  const currentGame = games.find((game) => game.current) || games.find((game) => game.status === "Играю") || games[0];
+  const currentGame = games.find((game) => game.current) || games.find((game) => game.status === "Играю") || games[0] || seedGames[0];
+  const sessionGame = games.find((game) => game.id === sessionGameId) || currentGame;
   const filteredGames = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return games.filter((game) =>
@@ -464,6 +496,42 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="session-planner" aria-labelledby="session-title">
+        <div className="session-heading">
+          <div>
+            <span className="eyebrow"><Clock3 /> Когда поиграть?</span>
+            <h2 id="session-title">Выбери игру и свободное время</h2>
+          </div>
+          <Select value={sessionGame.id} onValueChange={setSessionGameId}>
+            <SelectTrigger className="session-game-select" aria-label="Выбрать игру для плана"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {games.map((game) => <SelectItem key={game.id} value={game.id}>{game.title}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="duration-row" aria-label="Сколько времени есть на игру">
+          {[20, 60, 120].map((value) => (
+            <button key={value} className={sessionMinutes === value ? "active" : ""} onClick={() => setSessionMinutes(value)}>
+              {value === 20 ? "20 минут" : value === 60 ? "1 час" : "2 часа"}
+            </button>
+          ))}
+        </div>
+        <div className="session-result">
+          <div className={`session-monogram cover-${statusClass(sessionGame.status)}`}>{initials(sessionGame.title)}</div>
+          <div className="session-copy">
+            <span>{sessionMinutes === 20 ? "Короткая сессия" : sessionMinutes === 60 ? "Спокойная сессия" : "Длинная сессия"}</span>
+            <h3>{sessionGame.title}</h3>
+            <p>{buildSessionPlan(sessionGame, sessionMinutes)}</p>
+          </div>
+          <div className="session-actions">
+            <Button size="sm" onClick={() => openGame(sessionGame)}>Открыть игру</Button>
+            <Button size="sm" variant="outline" asChild>
+              <a href={pcGamingWikiUrl(sessionGame)} target="_blank" rel="noreferrer">PCGamingWiki <ExternalLink /></a>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <section className="stats-row" aria-label="Статистика библиотеки">
         <div><Gamepad2 /><span><strong>{counts.playing}</strong> играю</span></div>
         <div><Check /><span><strong>{counts.done}</strong> пройдено</span></div>
@@ -540,6 +608,11 @@ export default function Home() {
             </div>
             <label>Заметки<Textarea value={draft.notes || ""} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} placeholder="Где остановился, что важно помнить…" /></label>
             <label>Следующие задачи<Textarea value={(draft.tasks || []).join("\n")} onChange={(event) => setDraft({ ...draft, tasks: event.target.value.split("\n").map((task) => task.trim()).filter(Boolean) })} placeholder="Каждая задача с новой строки" /></label>
+
+            <a className="wiki-link" href={pcGamingWikiUrl({ ...draft, id: draft.id || "draft" } as Game)} target="_blank" rel="noreferrer">
+              <span><strong>PCGamingWiki</strong><small>Настройки, исправления и файлы игры</small></span>
+              <ExternalLink />
+            </a>
 
             <section className="ai-box" aria-labelledby="ai-title">
               <div className="ai-title-row">
