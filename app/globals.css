@@ -210,6 +210,90 @@ button { cursor: pointer; }
 .focus-next strong { align-self: center; font-size: .95rem; line-height: 1.35; }
 .focus-next button { justify-self: start; }
 
+.session-planner {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: clamp(16px, 2.5vw, 24px);
+  border: 1px solid #2b343d;
+  border-radius: 20px;
+  background:
+    linear-gradient(120deg, rgba(131,167,255,.08), transparent 42%),
+    rgba(16,20,25,.9);
+}
+
+.session-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.session-heading h2 {
+  margin: 5px 0 0;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  letter-spacing: -.035em;
+}
+
+.session-game-select {
+  width: min(390px, 100%);
+  height: 42px;
+  background: #151a20;
+}
+
+.duration-row {
+  display: flex;
+  gap: 8px;
+}
+
+.duration-row button {
+  min-height: 38px;
+  padding: 8px 15px;
+  border: 1px solid #303944;
+  border-radius: 11px;
+  color: #aeb7c2;
+  background: #151a20;
+  font-size: .88rem;
+  font-weight: 750;
+}
+
+.duration-row button:hover { color: #fff; border-color: #53606d; }
+.duration-row button.active { border-color: #7cf2a4; color: #071109; background: #7cf2a4; }
+
+.session-result {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  background: rgba(5,8,10,.36);
+}
+
+.session-monogram {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 950;
+  letter-spacing: -.05em;
+}
+
+.session-copy > span {
+  color: #7cf2a4;
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.session-copy h3 { margin: 3px 0 4px; font-size: 1rem; }
+.session-copy p { margin: 0; color: #aeb7c2; font-size: .88rem; line-height: 1.45; }
+.session-actions { display: flex; flex-direction: column; gap: 7px; }
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -361,6 +445,26 @@ button { cursor: pointer; }
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .form-grid.three { grid-template-columns: repeat(3, 1fr); }
 
+.wiki-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid #303a45;
+  border-radius: 14px;
+  color: #e8edf3;
+  background: #171d23;
+  text-decoration: none;
+  transition: border-color .16s ease, background .16s ease;
+}
+
+.wiki-link:hover { border-color: #83a7ff; background: #1a222b; }
+.wiki-link span { display: grid; gap: 2px; }
+.wiki-link strong { font-size: .88rem; }
+.wiki-link small { color: #98a3af; font-size: .75rem; }
+.wiki-link > svg { width: 18px; color: #83a7ff; }
+
 .ai-box {
   display: grid;
   gap: 12px;
@@ -412,6 +516,11 @@ button { cursor: pointer; }
   .focus-emblem { width: 58px; height: 58px; border-radius: 16px; font-size: 1.2rem; }
   .focus-main h2 { font-size: 1.25rem; }
   .library-topline { align-items: stretch; flex-direction: column; }
+  .session-heading { align-items: stretch; flex-direction: column; }
+  .session-game-select { width: 100%; }
+  .session-result { grid-template-columns: 56px minmax(0, 1fr); }
+  .session-monogram { width: 56px; height: 56px; }
+  .session-actions { grid-column: 1 / -1; flex-direction: row; }
   .search-box { width: 100%; }
   .games-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .form-grid.three { grid-template-columns: 1fr 1fr; }
@@ -422,6 +531,11 @@ button { cursor: pointer; }
   .brand-copy p { font-size: .72rem; }
   .focus-panel { padding: 15px; }
   .focus-next { grid-template-columns: 1fr; }
+  .duration-row { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .duration-row button { padding-inline: 8px; }
+  .session-result { grid-template-columns: 1fr; }
+  .session-monogram { width: 48px; height: 48px; }
+  .session-actions { display: grid; grid-template-columns: 1fr; }
   .stats-row { gap: 7px; }
   .stats-row > div { padding: 10px; }
   .games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
