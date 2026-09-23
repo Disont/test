@@ -260,6 +260,7 @@ export default function Home() {
   const [draft, setDraft] = useState<DraftGame>(emptyDraft);
   const [minutes, setMinutes] = useState("45");
   const [advice, setAdvice] = useState("");
+  const [adviceSource, setAdviceSource] = useState<"openai" | "local" | "">("");
   const [adviceLoading, setAdviceLoading] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
 
@@ -295,12 +296,14 @@ export default function Home() {
   const openGame = (game: Game) => {
     setDraft({ ...game, tasks: [...(game.tasks || [])] });
     setAdvice("");
+    setAdviceSource("");
     setSheetOpen(true);
   };
 
   const addGame = () => {
     setDraft({ ...emptyDraft, tasks: [] });
     setAdvice("");
+    setAdviceSource("");
     setSheetOpen(true);
   };
 
@@ -345,6 +348,7 @@ export default function Home() {
     const source = game || ({ ...draft, id: "draft" } as Game);
     setAdviceLoading(true);
     setAdvice("");
+    setAdviceSource("");
     try {
       const response = await fetch("/api/advice", {
         method: "POST",
@@ -352,10 +356,12 @@ export default function Home() {
         body: JSON.stringify({ game: source, minutes: Number(minutes) }),
       });
       if (!response.ok) throw new Error("request_failed");
-      const data = await response.json() as { advice?: string };
+      const data = await response.json() as { advice?: string; source?: "openai" | "local" };
       setAdvice(data.advice || fallbackAdvice(source, minutes));
+      setAdviceSource(data.source || "local");
     } catch {
       setAdvice(fallbackAdvice(source, minutes));
+      setAdviceSource("local");
     } finally {
       setAdviceLoading(false);
     }
@@ -537,7 +543,7 @@ export default function Home() {
 
             <section className="ai-box" aria-labelledby="ai-title">
               <div className="ai-title-row">
-                <div><Bot /><span><small>OpenAI</small><strong id="ai-title">Что делать дальше?</strong></span></div>
+                <div><Bot /><span><small>{adviceSource === "openai" ? "OpenAI" : adviceSource === "local" ? "Локальный план" : "AI-помощник"}</small><strong id="ai-title">Что делать дальше?</strong></span></div>
                 <Select value={minutes} onValueChange={setMinutes}>
                   <SelectTrigger size="sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
